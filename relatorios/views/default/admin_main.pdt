@@ -1,0 +1,342 @@
+<style>
+.relatorios-container {
+    padding: 10px 0;
+}
+.relatorios-header {
+    margin-bottom: 20px;
+}
+.relatorios-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #e1e5eb;
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.relatorios-form-group {
+    display: flex;
+    flex-direction: column;
+}
+.relatorios-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #495057;
+}
+.relatorios-form-group select,
+.relatorios-form-group input[type="date"] {
+    padding: 6px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    min-width: 150px;
+    height: 34px;
+    color: #495057;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    box-sizing: border-box;
+}
+.relatorios-form-group select:focus,
+.relatorios-form-group input[type="date"]:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+.relatorios-submit-group {
+    padding-bottom: 0;
+}
+.relatorios-btn-submit {
+    height: 34px;
+    padding: 6px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+.relatorios-btn-submit:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+.relatorios-table-wrapper {
+    background: #fff;
+    border: 1px solid #e1e5eb;
+    border-radius: 6px;
+    overflow-x: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    margin-bottom: 25px;
+}
+.relatorios-table-wrapper table {
+    margin-bottom: 0;
+}
+.relatorios-table-wrapper h3 {
+    margin: 0;
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e1e5eb;
+    font-size: 15px;
+    color: #333;
+}
+.relatorios-summary {
+    background-color: #f8f9fa;
+    border: 1px solid #e1e5eb;
+    border-left: 4px solid #28a745;
+    padding: 15px 20px;
+    margin-top: 20px;
+    border-radius: 6px;
+    text-align: right;
+    font-size: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.relatorios-summary-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #28a745;
+    margin-left: 10px;
+}
+.relatorios-empty {
+    background-color: #f8f9fa;
+    border: 1px dashed #ced4da;
+    padding: 40px 20px;
+    text-align: center;
+    border-radius: 6px;
+    color: #6c757d;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+</style>
+
+<div class="pad relatorios-container">
+    <div class="relatorios-header">
+        <h2><?php $this->_('AdminMain.heading_reports'); ?></h2>
+    </div>
+
+    <?php $this->Form->create($plugin_uri, ['id' => 'relatorios-form']); ?>
+    
+    <div class="relatorios-filter-bar">
+        <div class="relatorios-form-group">
+            <?php $this->Form->label($this->_('AdminMain.options.report', true), 'report'); ?>
+            <?php $this->Form->fieldSelect('report', $report_options, $report ?? 'income_forecast', ['id' => 'report']); ?>
+        </div>
+        
+        <div class="relatorios-form-group">
+            <?php $this->Form->label($this->_('AdminMain.options.currency', true), 'currency'); ?>
+            <?php $this->Form->fieldSelect('currency', $currencies, $vars->currency ?? 'USD', ['id' => 'currency']); ?>
+        </div>
+
+        <?php if ($report === 'income_forecast'): ?>
+        <div class="relatorios-form-group">
+            <?php $this->Form->label($this->_('AdminMain.options.months', true), 'months'); ?>
+            <?php $this->Form->fieldSelect('months', [
+                '12' => '12 ' . $this->_('AdminMain.options.months_label', true),
+                '24' => '24 ' . $this->_('AdminMain.options.months_label', true),
+                '36' => '36 ' . $this->_('AdminMain.options.months_label', true),
+                '48' => '48 ' . $this->_('AdminMain.options.months_label', true),
+                '60' => '60 ' . $this->_('AdminMain.options.months_label', true)
+            ], $vars->months ?? '12', ['id' => 'months']); ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($report === 'annual_income'): ?>
+        <div class="relatorios-form-group">
+            <?php $this->Form->label($this->_('AdminMain.options.year', true), 'year'); ?>
+            <?php $this->Form->fieldSelect('year', $available_years ?? [], $vars->year ?? date('Y'), ['id' => 'year']); ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($report === 'upcoming_invoices'): ?>
+        <div class="relatorios-form-group">
+            <?php $this->Form->label($this->_('AdminMain.options.start_date', true), 'start_date'); ?>
+            <input type="date" name="start_date" id="start_date" value="<?php echo $this->Html->safe($vars->start_date ?? date('Y-m-d')); ?>" />
+        </div>
+        <div class="relatorios-form-group">
+            <?php $this->Form->label($this->_('AdminMain.options.end_date', true), 'end_date'); ?>
+            <input type="date" name="end_date" id="end_date" value="<?php echo $this->Html->safe($vars->end_date ?? date('Y-m-d', strtotime('+30 days'))); ?>" />
+        </div>
+        <?php endif; ?>
+
+        <div class="relatorios-submit-group">
+            <?php $this->Form->fieldSubmit('submit', $this->_('AdminMain.options.submit', true), ['class' => 'relatorios-btn-submit']); ?>
+        </div>
+    </div>
+    
+    <?php $this->Form->end(); ?>
+
+    <?php if ($report === 'income_forecast'): ?>
+
+        <?php if (!empty($forecast_data)): ?>
+        <div class="relatorios-table-wrapper">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><?php $this->_('AdminMain.heading_month'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_monthly'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_quarterly'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_semi_annual'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_annual'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_biennial'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_triennial'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_total'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($forecast_data as $row): ?>
+                    <tr>
+                        <td><?php echo $this->Html->safe($row['month_name'] . ' ' . $row['year']); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['periods'][1], $vars->currency); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['periods'][3], $vars->currency); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['periods'][6], $vars->currency); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['periods'][12], $vars->currency); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['periods'][24], $vars->currency); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['periods'][36], $vars->currency); ?></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($row['monthly_total'], $vars->currency); ?></strong></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="relatorios-summary">
+            <?php $this->_('AdminMain.total_projected'); ?>: 
+            <span class="relatorios-summary-value"><?php echo $this->CurrencyFormat->format($overall_total, $vars->currency); ?></span>
+        </div>
+        <?php else: ?>
+        <div class="relatorios-empty">
+            <p><?php $this->_('AdminMain.no_results'); ?></p>
+        </div>
+        <?php endif; ?>
+
+    <?php elseif ($report === 'annual_income'): ?>
+
+        <?php if (!empty($annual_data)): ?>
+        <div class="relatorios-table-wrapper">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><?php $this->_('AdminMain.heading_month'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_amount_in'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_refunds'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_net'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($annual_data as $row): ?>
+                    <tr>
+                        <td><?php echo $this->Html->safe($row['month_name'] . ' ' . $vars->year); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['amount_in'], $vars->currency); ?></td>
+                        <td class="text-right"><?php echo $this->CurrencyFormat->format($row['refunds'], $vars->currency); ?></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($row['net'], $vars->currency); ?></strong></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong><?php $this->_('AdminMain.heading_total'); ?></strong></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($annual_totals['amount_in'], $vars->currency); ?></strong></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($annual_totals['refunds'], $vars->currency); ?></strong></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($annual_totals['net'], $vars->currency); ?></strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="relatorios-summary">
+            <?php $this->_('AdminMain.total_net_income'); ?>:
+            <span class="relatorios-summary-value"><?php echo $this->CurrencyFormat->format($annual_totals['net'], $vars->currency); ?></span>
+        </div>
+        <?php else: ?>
+        <div class="relatorios-empty">
+            <p><?php $this->_('AdminMain.no_results'); ?></p>
+        </div>
+        <?php endif; ?>
+
+    <?php elseif ($report === 'upcoming_invoices'): ?>
+
+        <?php if (!empty($upcoming_data['services'])): ?>
+        <div class="relatorios-table-wrapper">
+            <h3><?php $this->_('AdminMain.heading_upcoming_active'); ?></h3>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><?php $this->_('AdminMain.heading_next_due'); ?></th>
+                        <th><?php $this->_('AdminMain.heading_client'); ?></th>
+                        <th><?php $this->_('AdminMain.heading_product_service'); ?></th>
+                        <th><?php $this->_('AdminMain.heading_cycle'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_total'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($upcoming_data['services'] as $row): ?>
+                    <tr>
+                        <td><?php echo $this->Date->cast($row['date_renews'], 'date'); ?></td>
+                        <td><a href="<?php echo $this->Html->safe($this->base_uri . 'clients/view/' . $row['client_id'] . '/'); ?>"><?php echo $this->Html->safe($row['first_name'] . ' ' . $row['last_name']); ?> (#<?php echo $this->Html->safe($row['client_id_value']); ?>)</a></td>
+                        <td><a href="<?php echo $this->Html->safe($this->base_uri . 'clients/servicetab/' . $row['client_id'] . '/' . $row['service_id'] . '/'); ?>"><?php echo $this->Html->safe($row['package_name'] ?? 'Unknown'); ?></a></td>
+                        <td><?php echo $this->Html->safe($row['term'] . ' ' . $row['period']); ?></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($row['total'], $vars->currency); ?></strong></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div class="relatorios-empty">
+            <p><?php $this->_('AdminMain.no_results_upcoming'); ?></p>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($past_due_data['services'])): ?>
+        <div class="relatorios-table-wrapper">
+            <h3><?php $this->_('AdminMain.heading_overdue_pending'); ?></h3>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><?php $this->_('AdminMain.heading_next_due'); ?></th>
+                        <th><?php $this->_('AdminMain.heading_client'); ?></th>
+                        <th><?php $this->_('AdminMain.heading_product_service'); ?></th>
+                        <th><?php $this->_('AdminMain.heading_cycle'); ?></th>
+                        <th class="text-right"><?php $this->_('AdminMain.heading_total'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($past_due_data['services'] as $row): ?>
+                    <tr>
+                        <td><?php echo $this->Date->cast($row['date_renews'], 'date'); ?></td>
+                        <td><a href="<?php echo $this->Html->safe($this->base_uri . 'clients/view/' . $row['client_id'] . '/'); ?>"><?php echo $this->Html->safe($row['first_name'] . ' ' . $row['last_name']); ?> (#<?php echo $this->Html->safe($row['client_id_value']); ?>)</a></td>
+                        <td><a href="<?php echo $this->Html->safe($this->base_uri . 'clients/servicetab/' . $row['client_id'] . '/' . $row['service_id'] . '/'); ?>"><?php echo $this->Html->safe($row['package_name'] ?? 'Unknown'); ?></a></td>
+                        <td><?php echo $this->Html->safe($row['term'] . ' ' . $row['period']); ?></td>
+                        <td class="text-right"><strong><?php echo $this->CurrencyFormat->format($row['total'], $vars->currency); ?></strong></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($upcoming_data['services']) || !empty($past_due_data['services'])): ?>
+        <div class="relatorios-summary">
+            <?php $this->_('AdminMain.total_invoices'); ?>: 
+            <span class="relatorios-summary-value">
+                <?php echo $this->CurrencyFormat->format(($upcoming_data['total'] ?? 0) + ($past_due_data['total'] ?? 0), $vars->currency); ?>
+            </span>
+        </div>
+        <?php endif; ?>
+
+    <?php endif; ?>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    // Submit the form automatically when changing the report type
+    // so the correct secondary filters (Months vs Year vs Dates) are loaded
+    $('#report').on('change', function() {
+        $('#relatorios-form').submit();
+    });
+});
+</script>

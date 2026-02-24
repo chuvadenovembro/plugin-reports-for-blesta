@@ -1,0 +1,11 @@
+{
+    "version": "1.0.0",
+    "name": "RelatoriosPlugin.name",
+    "description": "RelatoriosPlugin.description",
+    "authors": [
+        {
+            "name": "Carlos Sidnei",
+            "url": ""
+        }
+    ]
+}
